@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>麻將計分</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+:root{
+  --f:'Noto Sans TC',sans-serif;
+  --fd:'Noto Serif TC',serif;
+  --xs:clamp(.8rem,.75rem+.22vw,.9rem);
+  --sm:clamp(.9rem,.85rem+.25vw,1rem);
+  --md:clamp(1rem,.95rem+.27vw,1.12rem);
+  --lg:clamp(1.2rem,1.05rem+.65vw,1.5rem);
+  --xl:clamp(1.5rem,1.25rem+1.1vw,1.95rem);
+  --xx:clamp(1.9rem,1.5rem+1.8vw,2.7rem);
+  --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.25rem;--s6:1.5rem;--s8:2rem;
+  --bg:#fdf8ee;--bg2:#f9f2df;--sur:#fff;--sur2:#fff9ec;
+  --bd:rgba(180,140,40,.2);--bd2:rgba(180,140,40,.38);
+  --tx:#2c2208;--mut:#7a6530;--fnt:#b8a870;
+  --gold:#b8860b;--g2:#d4a017;--g3:#f0c040;
+  --gbtn:linear-gradient(135deg,#b8860b,#e8b820 40%,#f8d860 55%,#e8b820 70%,#b8860b);
+  --sh:rgba(180,140,40,.10);--sh2:rgba(180,140,40,.18);
+  --red:#c0392b;--blue:#2470a0;
+  --sdw:0 2px 12px rgba(160,120,10,.12);
+  --sdwg:0 0 14px rgba(180,140,40,.28),0 4px 20px rgba(160,120,10,.12);
+  --tr:170ms cubic-bezier(.16,1,.3,1);
+  --rr:.5rem;--rm:.75rem;--rl:1rem;--rx:1.25rem;--rfull:999px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:none;text-size-adjust:none;}
+body{min-height:100dvh;font-family:var(--f);font-size:var(--md);color:var(--tx);background:var(--bg);-webkit-font-smoothing:antialiased;}
+button,input{font:inherit;color:inherit;border:none;cursor:pointer;background:none;}
+input{outline:none;}
+
+.view{display:none;min-height:100dvh;}
+.view.active{display:block;}
+
+.swrap{max-width:560px;margin:0 auto;padding:var(--s4) var(--s3) var(--s8);}
+.shero{text-align:center;padding:var(--s6) var(--s4) var(--s4);}
+.stile{font-size:3rem;}
+.stitle{font-family:var(--fd);font-size:var(--xl);font-weight:900;letter-spacing:.05em;background:var(--gbtn);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:.4rem;}
+.ssub{font-size:var(--sm);color:var(--mut);margin-top:.25rem;}
+.scard{background:var(--sur);border:1px solid var(--bd);border-radius:var(--rx);box-shadow:var(--sdw);padding:var(--s4) var(--s5);margin-bottom:var(--s4);}
+.sctitle{font-family:var(--fd);font-size:var(--sm);font-weight:900;color:var(--gold);letter-spacing:.07em;text-transform:uppercase;margin-bottom:var(--s3);display:flex;align-items:center;gap:.45rem;}
+.sctitle::before{content:'';display:block;width:3px;height:1em;background:linear-gradient(180deg,var(--g3),var(--gold));border-radius:2px;}
+.steprow{display:flex;align-items:center;gap:var(--s3);}
+.bstep{width:58px;height:58px;border-radius:var(--rm);background:var(--bg2);border:1.5px solid var(--bd);font-size:1.8rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;transition:all var(--tr);}
+.bstep:active{background:var(--sh2);transform:scale(.93);}
+.stepctr{flex:1;text-align:center;}
+.stepval{font-family:var(--fd);font-size:var(--xl);font-weight:900;color:var(--gold);line-height:1;}
+.stepunit{font-size:var(--sm);color:var(--mut);margin-top:.2rem;}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.85rem 0;border-top:1px solid rgba(180,140,40,.08);}
+.srow:first-child{border-top:none;}
+.skey{font-size:var(--sm);color:var(--mut);}
+.sval{display:flex;align-items:center;gap:.45rem;color:var(--gold);font-weight:900;}
+.sstep{width:36px;height:36px;border-radius:var(--rm);background:var(--bg2);border:1px solid var(--bd);font-size:.95rem;font-weight:900;display:flex;align-items:center;justify-content:center;transition:all var(--tr);}
+.sstep:active{background:var(--sh2);}
+.ngrid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;}
+.nfield{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--rm);padding:.65rem .8rem;font-size:var(--md);font-weight:700;color:var(--tx);text-align:center;width:100%;transition:border-color var(--tr);}
+.nfield:focus{border-color:var(--g2);}
+.startbtn{display:block;width:100%;padding:1.1rem var(--s4);border-radius:var(--rx);font-family:var(--fd);font-size:var(--lg);font-weight:900;letter-spacing:.06em;background:var(--gbtn);color:#3b2000;box-shadow:0 4px 20px rgba(180,140,40,.35);margin-top:var(--s4);transition:all var(--tr);}
+.startbtn:active{transform:scale(.97);}
+
+.ghead{position:sticky;top:0;z-index:10;background:rgba(253,248,238,.95);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--bd);padding:var(--s2) var(--s4);display:flex;align-items:center;justify-content:space-between;gap:.8rem;}
+.glogo{font-family:var(--fd);font-size:var(--lg);font-weight:900;background:var(--gbtn);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.gmeta{font-size:var(--xs);color:var(--mut);}
+.wbox{text-align:center;min-width:58px;padding:.4rem .6rem;border-radius:var(--rm);background:linear-gradient(135deg,#fef3c0,#fde68a);border:1.5px solid var(--g2);box-shadow:var(--sdwg);}
+.wchar{font-family:var(--fd);font-size:var(--lg);font-weight:900;color:var(--gold);line-height:1;}
+.wsub{font-size:var(--xs);color:var(--mut);}
+.gwrap{max-width:560px;margin:0 auto;padding:var(--s3) var(--s3) var(--s8);}
+.dstrip{display:flex;align-items:center;justify-content:center;gap:.6rem;padding:.55rem var(--s4);background:linear-gradient(135deg,#fef9ec,#fdf3d4);border:1px solid var(--bd2);border-radius:var(--rl);margin-bottom:var(--s2);font-size:var(--sm);color:var(--mut);}
+.dchip{background:linear-gradient(135deg,#fde68a,#fcd34d);border:1px solid var(--g2);border-radius:var(--rfull);padding:.25rem .75rem;font-weight:900;color:var(--gold);box-shadow:var(--sdwg);}
+.poolbar{text-align:center;padding:.5rem var(--s4);background:linear-gradient(135deg,#fef3c0,#fde68a);border:1.5px solid var(--g2);border-radius:var(--rl);margin-bottom:var(--s3);font-size:var(--sm);color:var(--mut);box-shadow:var(--sdwg);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-bottom:var(--s3);}
+.pcard{padding:var(--s3) var(--s4);border-radius:var(--rx);background:var(--sur);border:1.5px solid var(--bd);box-shadow:var(--sdw);position:relative;}
+.pcard.dlr{border:2px solid var(--g2);background:linear-gradient(135deg,#fffde7,#fff9d4);box-shadow:var(--sdwg);}
+.pwind{position:absolute;top:.55rem;right:.55rem;font-family:var(--fd);font-size:var(--xs);color:var(--fnt);background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rfull);padding:.15rem .45rem;font-weight:700;}
+.pwind.dw{background:linear-gradient(135deg,#fef3c0,#fde68a);border-color:var(--g2);color:var(--gold);}
+.pname{font-family:var(--fd);font-size:var(--md);font-weight:800;color:var(--tx);border-bottom:1.5px solid var(--bd);width:calc(100% - 2rem);background:transparent;padding-bottom:.2rem;}
+.pscore{font-family:var(--fd);font-size:var(--xx);font-weight:900;margin-top:.5rem;line-height:1.1;}
+.pscore.p{color:var(--gold);}
+.pscore.n{color:var(--red);}
+.pscore.z{color:var(--mut);}
+.pstreak{font-size:var(--xs);color:var(--g2);min-height:1.1em;margin-top:.3rem;font-weight:700;}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rx);padding:.4rem;margin-bottom:var(--s3);}
+.tab{padding:.7rem;border-radius:.8rem;font-size:var(--md);font-weight:800;color:var(--mut);transition:all var(--tr);}
+.tab.on{background:linear-gradient(135deg,#fef3c0,#fde68a);color:var(--gold);box-shadow:var(--sdwg);border:1px solid var(--g2);}
+.panel{background:var(--sur);border:1px solid var(--bd);border-radius:var(--rx);box-shadow:var(--sdw);}
+.pbox{padding:var(--s4) var(--s5);}
+.plbl{font-family:var(--fd);font-size:var(--sm);font-weight:900;color:var(--gold);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.55rem;display:flex;align-items:center;gap:.4rem;}
+.plbl::before{content:'';display:block;width:3px;height:1em;background:linear-gradient(180deg,var(--g3),var(--gold));border-radius:2px;}
+.arow{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-bottom:var(--s3);}
+.abtn{min-height:68px;padding:.65rem .4rem;border-radius:var(--rl);background:var(--bg2);border:1.5px solid var(--bd);font-size:var(--sm);font-weight:800;display:flex;flex-direction:column;align-items:center;gap:.22rem;transition:all var(--tr);}
+.abtn .ico{font-size:1.6rem;line-height:1;}
+.abtn.aw{background:linear-gradient(135deg,#fef3c0,#fde68a);border-color:var(--g2);color:var(--gold);box-shadow:var(--sdwg);}
+.abtn.ad{background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-color:var(--blue);color:var(--blue);}
+.abtn:active{transform:scale(.95);}
+.sep{height:1px;background:linear-gradient(90deg,transparent,var(--bd2),transparent);margin:var(--s3) 0;}
+.tai-row{display:flex;align-items:center;gap:var(--s3);margin-bottom:.5rem;}
+.tbstep{width:60px;height:60px;border-radius:var(--rm);background:var(--bg2);border:1.5px solid var(--bd);font-size:1.9rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;transition:all var(--tr);}
+.tbstep:active{background:var(--sh2);transform:scale(.93);}
+.tctr{flex:1;text-align:center;background:linear-gradient(135deg,#fef9ec,#fdf3d4);border-radius:var(--rm);border:1px solid var(--bd2);padding:.5rem;}
+.tnum{font-family:var(--fd);font-size:var(--xx);font-weight:900;color:var(--gold);line-height:1;}
+.tsub{font-size:var(--xs);color:var(--mut);margin-top:.2rem;}
+.selbar{background:var(--sh);border:1px solid var(--bd);border-radius:var(--rm);padding:.55rem var(--s3);font-size:var(--sm);color:var(--mut);margin-bottom:var(--s3);}
+.selbar b{color:var(--gold);}
+#baoziSel{flex:1;padding:.65rem var(--s3);border-radius:var(--rm);border:1.5px solid var(--bd2);background:var(--bg2);font-size:var(--md);font-weight:800;color:var(--tx);appearance:auto;}
+#baoziSel:focus{border-color:var(--g2);outline:none;}
+.ilbl{font-size:var(--sm);color:var(--mut);margin-bottom:.45rem;font-weight:700;}
+.pgbtn-wrap{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:var(--s2);}
+.pgbtn{min-height:58px;padding:.65rem .55rem;border-radius:var(--rl);background:var(--bg2);border:1.5px solid var(--bd);font-size:var(--md);font-weight:800;transition:all var(--tr);}
+.pgbtn.on{background:linear-gradient(135deg,#fef3c0,#fde68a);border-color:var(--g2);color:var(--gold);box-shadow:var(--sdwg);}
+.pgbtn:active{transform:scale(.96);}
+.hint{background:var(--sh);border:1px solid var(--bd);border-radius:var(--rm);padding:.65rem var(--s3);font-size:var(--sm);color:var(--mut);line-height:1.6;margin-top:var(--s3);}
+.hint b{color:var(--gold);}
+.cfmbtn{width:100%;min-height:64px;border-radius:var(--rx);font-family:var(--fd);font-size:var(--lg);font-weight:900;letter-spacing:.05em;background:var(--gbtn);color:#3b2000;box-shadow:0 4px 20px rgba(180,140,40,.35);margin-top:var(--s4);transition:all var(--tr);}
+.cfmbtn:active{transform:scale(.97);}
+.fbrow{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:.65rem;}
+.fbtn{min-height:52px;border-radius:var(--rl);background:var(--bg2);border:1px solid var(--bd);font-size:var(--sm);font-weight:800;color:var(--mut);transition:all var(--tr);}
+.fbtn:active{color:var(--gold);border-color:var(--g2);}
+.pstrip{display:none;background:linear-gradient(135deg,#fef9ec,#fdf3d4);border:1.5px solid var(--g2);border-radius:var(--rl);padding:.65rem var(--s4);margin-top:var(--s3);box-shadow:var(--sdwg);}
+.pstrip-lbl{font-size:var(--xs);color:var(--mut);font-weight:700;}
+.pstrip-val{font-family:var(--fd);font-size:var(--lg);font-weight:900;color:var(--gold);}
+.pstrip-cnt{font-size:var(--xs);color:var(--fnt);margin-top:.15rem;}
+.hlist{max-height:340px;overflow-y:auto;}
+.hitem{padding:.8rem var(--s4);border-top:1px solid rgba(180,140,40,.07);}
+.hitem:first-child{border-top:none;}
+.hhead{display:flex;align-items:center;gap:.55rem;margin-bottom:.38rem;}
+.hrno{font-size:var(--xs);color:var(--fnt);min-width:34px;}
+.hdesc{font-size:var(--sm);color:var(--tx);flex:1;font-weight:700;}
+.hdetails{display:grid;grid-template-columns:repeat(4,1fr);gap:.28rem;}
+.hdet{font-size:var(--xs);text-align:center;padding:.28rem .18rem;border-radius:var(--rr);background:var(--bg2);}
+.hdet .dn{font-size:calc(var(--xs) - .04rem);color:var(--fnt);margin-bottom:.08rem;}
+.hdet .dv{font-weight:800;font-family:var(--fd);}
+.hdet .dv.p{color:var(--gold);}
+.hdet .dv.n{color:var(--red);}
+.hdet .dv.z{color:var(--mut);}
+@keyframes fu{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-65px) scale(1.15);}}
+.floater{position:fixed;pointer-events:none;font-family:var(--fd);font-size:var(--lg);font-weight:900;color:var(--gold);text-shadow:0 2px 8px rgba(180,140,40,.4);z-index:99;animation:fu .9s ease-out forwards;}
+@media(max-width:420px){
+  .gwrap,.swrap{padding:var(--s3) var(--s2) var(--s8);}
+  .pbox{padding:var(--s3);}
+  .pgrid{gap:var(--s2);}
+  .pcard{padding:var(--s2) var(--s3);}
+  .bstep,.tbstep{width:52px;height:52px;font-size:1.6rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══ -->
+<div class="view active" id="vSetup">
+<div class="swrap">
+  <div class="shero">
+    <div class="stile">🀄</div>
+    <div class="stitle">麻將計分 App</div>
+    <div class="ssub">請先設定遊戲規則</div>
+  </div>
+
+  <div class="scard">
+    <div class="sctitle">底（每局底注）</div>
+    <div class="steprow">
+      <button class="bstep" onclick="adjS('base',-1)">−</button>
+      <div class="stepctr"><div class="stepval" id="sv_base">100</div><div class="stepunit">元／局底</div></div>
+      <button class="bstep" onclick="adjS('base',1)">＋</button>
+    </div>
+  </div>
+
+  <div class="scard">
+    <div class="sctitle">台（每台金額）</div>
+    <div class="steprow">
+      <button class="bstep" onclick="adjS('taiVal',-1)">−</button>
+      <div class="stepctr"><div class="stepval" id="sv_taiVal">10</div><div class="stepunit">元／台</div></div>
+      <button class="bstep" onclick="adjS('taiVal',1)">＋</button>
+    </div>
+  </div>
+
+  <div class="scard">
+    <div class="sctitle">自摸抽水 → 公台</div>
+    <div class="steprow">
+      <button class="bstep" onclick="adjS('fee',-1)">−</button>
+      <div class="stepctr"><div class="stepval" id="sv_fee">100</div><div class="stepunit" id="sv_fee_u">元／次</div></div>
+      <button class="bstep" onclick="adjS('fee',1)">＋</button>
+    </div>
+  </div>
+
+  <div class="scard">
+    <div class="sctitle">規則</div>
+    <div class="srow">
+      <span class="skey">連莊自摸加台倍數（每連莊 × N 台）</span>
+      <div class="sval">
+        <button class="sstep" onclick="adjC('streakBonus',-1)">−</button>
+        <span id="c_streakBonus">2</span>
+        <button class="sstep" onclick="adjC('streakBonus',1)">＋</button>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="skey">連莊被胡加台倍數（每連莊 × N 台）</span>
+      <div class="sval">
+        <button class="sstep" onclick="adjC('dealerPenalty',-1)">−</button>
+        <span id="c_dealerPenalty">2</span>
+        <button class="sstep" onclick="adjC('dealerPenalty',1)">＋</button>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="skey">流局連莊</span>
+      <div class="sval">
+        <button class="sstep" style="width:auto;padding:0 .8rem" id="drawBtn" onclick="toggleDraw()">是</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scard">
+    <div class="sctitle">玩家名稱</div>
+    <div class="ngrid" id="nameGrid"></div>
+  </div>
+
+  <button class="startbtn" onclick="startGame()">🀄 開始計分</button>
+</div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div class="view" id="vGame">
+  <header class="ghead">
+    <div>
+      <div class="glogo">🀄 麻將計分</div>
+      <div class="gmeta">底<b id="hBase">-</b> 台<b id="hTai">-</b> 水<b id="hFee">-</b></div>
+    </div>
+    <div class="wbox">
+      <div class="wchar" id="windChar">東</div>
+      <div class="wsub" id="windSub">第1局</div>
+    </div>
+  </header>
+
+  <main class="gwrap">
+    <div class="dstrip">
+      <span>莊家</span><span class="dchip" id="dName">東家</span>
+      <span>連莊</span><span class="dchip" id="dStreak">0</span>
+    </div>
+    <div class="poolbar" id="poolBar" style="display:none">
+      💰 公台：<b id="poolAmt" style="font-size:var(--lg);color:var(--gold)">0</b> 元
+      <span id="poolCnt" style="color:var(--fnt)"></span>
+    </div>
+
+    <div class="pgrid" id="pGrid"></div>
+
+    <div class="tabs">
+      <button class="tab on" id="tabScore" onclick="switchTab('score')">📊 計分</button>
+      <button class="tab" id="tabSetting" onclick="switchTab('setting')">⚙️ 設定</button>
+    </div>
+
+    <!-- SCORE TAB -->
+    <div id="tScore">
+      <div class="panel">
+        <div class="pbox">
+          <div class="plbl">本局結果</div>
+          <div class="arow">
+            <button class="abtn" id="abtn_tsumo" onclick="selAct('tsumo')"><span class="ico">🤜</span>自摸</button>
+            <button class="abtn" id="abtn_ron"   onclick="selAct('ron')"><span class="ico">🎯</span>胡牌</button>
+            <button class="abtn" id="abtn_draw"  onclick="selAct('draw')"><span class="ico">🤝</span>流局</button>
+          </div>
+
+          <div class="sep"></div>
+          <div class="plbl">台數</div>
+          <div class="tai-row">
+            <button class="tbstep" onclick="chgTai(-1)">−</button>
+            <div class="tctr">
+              <div class="tnum" id="tNum">1</div>
+              <div class="tsub" id="tSub">台 × 10 元</div>
+            </div>
+            <button class="tbstep" onclick="chgTai(1)">＋</button>
+          </div>
+          <div class="selbar" id="tBar">台數：1台 × 10元 = <b>10 元</b></div>
+          <div style="display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s3)">
+            <div style="font-size:var(--sm);font-weight:900;color:var(--gold);white-space:nowrap">🎲 豹子</div>
+            <select id="baoziSel" onchange="st.baozi=+this.value;calcHint()"
+              style="flex:1;padding:.65rem var(--s3);border-radius:var(--rm);border:1.5px solid var(--bd2);
+              background:var(--bg2);font-size:var(--md);font-weight:800;color:var(--tx);appearance:auto">
+              <option value="1">× 1（無豹子）</option>
+              <option value="2">× 2</option>
+              <option value="3">× 3</option>
+              <option value="4">× 4</option>
+              <option value="5">× 5</option>
+            </select>
+          </div>
+
+          <div id="wWrap" style="display:none;margin-top:var(--s3)">
+            <div class="ilbl">胡牌者</div>
+            <div class="pgbtn-wrap" id="wGrid"></div>
+          </div>
+          <div id="dWrap" style="display:none;margin-top:var(--s3)">
+            <div class="ilbl">放槍者</div>
+            <div class="pgbtn-wrap" id="dGrid"></div>
+          </div>
+          <div class="pstrip" id="poolStrip">
+            <div class="pstrip-lbl" style="margin-bottom:.4rem">💰 自摸次數記錄（抽水→公台）</div>
+            <div id="feeTallyRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;margin-bottom:.4rem"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="pstrip-cnt" id="poolStripCnt">共 0 次</div>
+              <div><span class="pstrip-lbl">本次：</span><span class="pstrip-val" id="poolStripAmt">100 元</span></div>
+            </div>
+          </div>
+          <div class="hint" id="hint" style="display:none"></div>
+
+          <button class="cfmbtn" onclick="doConfirm()">✓ 確認入帳</button>
+          <div class="fbrow">
+            <button class="fbtn" onclick="doUndo()">↩ 復原上一局</button>
+            <button class="fbtn" onclick="goSetup()">⚙️ 重新設定</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:var(--s4)">
+        <div class="pbox" style="padding-bottom:var(--s2)">
+          <div class="plbl">歷史記錄</div>
+        </div>
+        <div class="hlist" id="hList">
+          <div class="hitem"><div class="hhead"><span class="hrno">-</span><span class="hdesc">尚無記錄</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTING TAB -->
+    <div id="tSetting" style="display:none">
+      <div class="panel"><div class="pbox">
+        <div class="plbl">連莊規則</div>
+        <div class="srow">
+          <span class="skey">連莊自摸加台倍數</span>
+          <div class="sval">
+            <button class="sstep" onclick="adjCG('streakBonus',-1)">−</button>
+            <span id="gc_streakBonus">2</span>
+            <button class="sstep" onclick="adjCG('streakBonus',1)">＋</button>
+          </div>
+        </div>
+        <div class="srow">
+          <span class="skey">連莊被胡加台倍數</span>
+          <div class="sval">
+            <button class="sstep" onclick="adjCG('dealerPenalty',-1)">−</button>
+            <span id="gc_dealerPenalty">2</span>
+            <button class="sstep" onclick="adjCG('dealerPenalty',1)">＋</button>
+          </div>
+        </div>
+        <div class="srow">
+          <span class="skey">流局連莊</span>
+          <div class="sval">
+            <button class="sstep" style="width:auto;padding:0 .8rem" id="gdrawBtn" onclick="toggleDrawG()">是</button>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const BASE_L=[30,50,100,200,300,400,500,600,700,800,900,1000];
+const TAI_L=[10,20,50,100,150,200,250,300,350,400,450,500];
+const FEE_L=[0,50,100,150,200,250,300];
+const WINDS=['東','南','西','北'];
+
+const cfg={base:100,taiVal:10,fee:100,streakBonus:2,dealerPenalty:2,drawKeep:true};
+let biIdx=2, tiIdx=0, fiIdx=2;
+
+const st={
+  players:[
+    {name:'東家',score:0},{name:'南家',score:0},
+    {name:'西家',score:0},{name:'北家',score:0}
+  ],
+  dealerIdx:0,streak:0,round:1,
+  act:null,winner:null,discard:null,tai:1,baozi:1,
+  feePool:0,feeCnt:0,feeTally:[0,0,0,0],
+  history:[],snaps:[]
+};
+
+// ── SETUP ──
+function adjS(k,d){
+  if(k==='base'){biIdx=Math.max(0,Math.min(BASE_L.length-1,biIdx+d));cfg.base=BASE_L[biIdx];document.getElementById('sv_base').textContent=cfg.base;}
+  else if(k==='taiVal'){tiIdx=Math.max(0,Math.min(TAI_L.length-1,tiIdx+d));cfg.taiVal=TAI_L[tiIdx];document.getElementById('sv_taiVal').textContent=cfg.taiVal;}
+  else if(k==='fee'){fiIdx=Math.max(0,Math.min(FEE_L.length-1,fiIdx+d));cfg.fee=FEE_L[fiIdx];
+    document.getElementById('sv_fee').textContent=cfg.fee===0?'不抽水':cfg.fee;
+    document.getElementById('sv_fee_u').textContent=cfg.fee===0?'':' 元／次';}
+}
+function adjC(k,d){cfg[k]=Math.max(0,Math.min(10,cfg[k]+d));document.getElementById('c_'+k).textContent=cfg[k];}
+function toggleDraw(){cfg.drawKeep=!cfg.drawKeep;document.getElementById('drawBtn').textContent=cfg.drawKeep?'是':'否';}
+function buildNames(){
+  document.getElementById('nameGrid').innerHTML=st.players.map((p,i)=>
+    `<input class="nfield" value="${p.name}" maxlength="8" onchange="st.players[${i}].name=this.value||'${WINDS[i]}家'">`
+  ).join('');
+}
+function startGame(){
+  document.querySelectorAll('#nameGrid .nfield').forEach((el,i)=>{
+    st.players[i].name=el.value||WINDS[i]+'家';
+  });
+  st.players.forEach((p,i)=>{p.wind=WINDS[(i-st.dealerIdx+4)%4];});
+  renderGame();
+  showView('vGame');
+}
+function goSetup(){
+  if(st.history.length&&!confirm('返回設定頁，記錄保留。確定？'))return;
+  showView('vSetup');
+}
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── TABS ──
+function switchTab(t){
+  document.getElementById('tabScore').classList.toggle('on',t==='score');
+  document.getElementById('tabSetting').classList.toggle('on',t==='setting');
+  document.getElementById('tScore').style.display=t==='score'?'block':'none';
+  document.getElementById('tSetting').style.display=t==='setting'?'block':'none';
+}
+
+// ── GAME ──
+function renderGame(){
+  // header
+  const wi=Math.floor((st.round-1)/4)%4;
+  document.getElementById('windChar').textContent=WINDS[wi];
+  document.getElementById('windSub').textContent='第'+st.round+'局';
+  document.getElementById('dName').textContent=st.players[st.dealerIdx].name;
+  document.getElementById('windChar').textContent=WINDS[st.dealerIdx];
+  document.getElementById('dStreak').textContent=st.streak;
+  document.getElementById('hBase').textContent=cfg.base;
+  document.getElementById('hTai').textContent=cfg.taiVal;
+  document.getElementById('hFee').textContent=cfg.fee===0?'不抽':cfg.fee;
+  // pool bar
+  const pb=document.getElementById('poolBar');
+  pb.style.display=cfg.fee>0?'block':'none';
+  document.getElementById('poolAmt').textContent=st.feePool.toLocaleString();
+  const tParts=st.players.map((p,i)=>st.feeTally[i]>0?p.name+st.feeTally[i]+'次':'').filter(Boolean);
+  document.getElementById('poolCnt').textContent=st.feeCnt>0?'（自摸：'+tParts.join(' ')+' 共'+st.feeCnt+'次）':'';
+  // players
+  document.getElementById('pGrid').innerHTML=st.players.map((p,i)=>{
+    const isD=i===st.dealerIdx;
+    const cls=p.score>0?'p':p.score<0?'n':'z';
+    const sign=p.score>0?'+':'';
+    return`<div class="pcard${isD?' dlr':''}">
+      <div class="pwind${isD?' dw':''}">${isD?'莊👑 ':''} ${p.wind||WINDS[i]}</div>
+      <input class="pname" value="${p.name}" maxlength="8" onchange="st.players[${i}].name=this.value;renderGame()">
+      <div class="pscore ${cls}">${sign}${p.score.toLocaleString()}</div>
+      <div class="pstreak">${isD&&st.streak>0?'🔥 連莊 '+st.streak:' '}</div>
+    </div>`;
+  }).join('');
+  // tai
+  renderTai();
+  // settings tab sync
+  document.getElementById('gc_streakBonus').textContent=cfg.streakBonus;
+  document.getElementById('gc_dealerPenalty').textContent=cfg.dealerPenalty;
+  document.getElementById('gdrawBtn').textContent=cfg.drawKeep?'是':'否';
+  // history
+  renderHistory();
+}
+
+function renderTai(){
+  const t=st.tai; const isP=t===0;
+  document.getElementById('tNum').textContent=isP?'屁':t;
+  document.getElementById('tSub').textContent=isP?'屁胡（只收底）':'台 × '+cfg.taiVal+' 元';
+  document.getElementById('tBar').innerHTML=isP?
+    '<b>屁胡（0台）</b>：底 '+cfg.base.toLocaleString()+' 元':
+    '底(固定)'+cfg.base+' + '+t+'台×'+cfg.taiVal+(st.baozi>1?'×'+st.baozi+'(豹)':'')+'×2(莊) = <b>'+(cfg.base+t*cfg.taiVal*st.baozi*2).toLocaleString()+' 元（莊付）/ <b>'+(cfg.base+t*cfg.taiVal*st.baozi).toLocaleString()+' 元（閒付）</b>';
+}
+function chgTai(d){st.tai=Math.max(0,Math.min(50,st.tai+d));renderTai();calcHint();}
+
+function renderWDGrids(){
+  // winner
+  const wg=document.getElementById('wGrid');
+  wg.innerHTML=st.players.map((p,i)=>
+    `<button class="pgbtn${st.winner===i?' on':''}" onclick="pickW(${i})">${p.name}${i===st.dealerIdx?' 👑':''}</button>`
+  ).join('');
+  // discard
+  const dg=document.getElementById('dGrid');
+  dg.innerHTML=st.players.map((p,i)=>
+    `<button class="pgbtn${st.discard===i?' on':''}" onclick="pickD(${i})">${p.name}${i===st.dealerIdx?' 👑':''}</button>`
+  ).join('');
+}
+function pickW(i){st.winner=i;renderWDGrids();calcHint();}
+function pickD(i){st.discard=i;renderWDGrids();calcHint();}
+
+function selAct(a){
+  st.act=a; st.winner=null; st.discard=null;
+  ['tsumo','ron','draw'].forEach(x=>{
+    const b=document.getElementById('abtn_'+x);
+    b.classList.remove('aw','ad');
+    if(x===a)b.classList.add(a==='draw'?'ad':'aw');
+  });
+  document.getElementById('wWrap').style.display=(a==='tsumo'||a==='ron')?'block':'none';
+  document.getElementById('dWrap').style.display=a==='ron'?'block':'none';
+  const ps=document.getElementById('poolStrip');
+  ps.style.display=(a==='tsumo'&&cfg.fee>0)?'block':'none';
+  if(a==='tsumo'&&cfg.fee>0){
+    document.getElementById('poolStripAmt').textContent=cfg.fee.toLocaleString()+' 元';
+    renderFeeTally();
+  }
+  renderWDGrids();
+  calcHint();
+}
+
+function calcHint(){
+  const box=document.getElementById('hint');
+  if(!st.act){box.style.display='none';return;}
+  box.style.display='block';
+  const t=st.tai; const tv=cfg.taiVal;
+  if(st.act==='draw'){box.innerHTML='流局：'+(cfg.drawKeep?'莊家連莊 +1':'換莊');return;}
+  if(st.act==='tsumo'){
+    if(st.winner===null){box.innerHTML='請選擇自摸者';return;}
+    const w=st.winner; const isD=w===st.dealerIdx;
+    const bonus=isD&&st.streak>0?st.streak*cfg.streakBonus+1:0;
+    const total=t+bonus; const isP=total===0;
+    let gross=0;
+    st.players.forEach((_,i)=>{if(i!==w){const mult=isD?2:(i===st.dealerIdx?2:1);const pay=cfg.base+total*tv*st.baozi*mult;gross+=pay;}});
+    const net=gross-cfg.fee;
+    const bn=bonus>0?'（連莊'+st.streak+'次：'+st.streak+'×'+cfg.streakBonus+'+1=+'+bonus+'台）':'';
+    box.innerHTML='底'+cfg.base+(total>0?'+'+total+'台×'+tv+(st.baozi>1?'×'+st.baozi+'(豹)':''):'')+bn+
+      '<br>實收 <b>'+gross.toLocaleString()+'</b> 元'+(cfg.fee>0?' ｜ 抽水 '+cfg.fee+' → 公台（另計）':'');
+    return;
+  }
+  if(st.act==='ron'){
+    if(st.winner===null||st.discard===null){box.innerHTML='請選擇胡牌者與放槍者';return;}
+    if(st.winner===st.discard){box.innerHTML='⚠️ 胡牌者不可等於放槍者';return;}
+    const w=st.winner; const dsc=st.discard;
+    const isD=w===st.dealerIdx; const isDL=dsc===st.dealerIdx;
+    const wb=isD&&st.streak>0?st.streak*cfg.streakBonus+1:0;
+    const db=isDL?st.streak*2+1:0;
+    const total=t+wb+db; const isP=total===0;
+    const amt=cfg.base+total*tv*st.baozi;
+    const notes=[];
+    if(wb>0)notes.push('莊贏+'+wb);if(db>0)notes.push('莊放+'+db+'台');
+    const amtB=amt;
+    box.innerHTML='底'+cfg.base+(total>0?'+'+total+'台×'+tv+(st.baozi>1?'×'+st.baozi+'(豹)':''):'')+
+      (notes.length?' ('+notes.join('，')+')':'')+
+      '<br>放槍支付 <b>'+amtB.toLocaleString()+' 元</b> （不抽水）';
+  }
+}
+
+
+function renderFeeTally(){
+  const row=document.getElementById('feeTallyRow');
+  if(!row)return;
+  row.innerHTML=st.players.map((p,i)=>{
+    const hasCount=st.feeTally[i]>0;
+    return '<div style="text-align:center;padding:.3rem .2rem;border-radius:.45rem;'+
+      'background:'+(hasCount?'linear-gradient(135deg,#fef3c0,#fde68a)':'var(--bg)')+';'+
+      'border:1px solid '+(hasCount?'var(--bd2)':'var(--bd)')+'">'+
+      '<div style="font-size:var(--xs);color:var(--mut);font-weight:700">'+p.name+'</div>'+
+      '<div style="font-size:var(--lg);font-weight:900;color:'+(hasCount?'var(--gold)':'var(--mut)')+'">'+st.feeTally[i]+'</div>'+
+      '<div style="font-size:var(--xs);color:var(--fnt)">次</div>'+
+      '</div>';
+  }).join('');
+  const total=st.feeTally.reduce((a,b)=>a+b,0);
+  const cntEl=document.getElementById('poolStripCnt');
+  if(cntEl){
+    const parts=st.players.map((p,i)=>st.feeTally[i]>0?p.name+st.feeTally[i]+'次':'').filter(Boolean);
+    cntEl.textContent=(parts.length?parts.join(' '):'')+' 共'+total+'次';
+  }
+}
+
+
+function doConfirm(){
+  if(!st.act){alert('請先選擇結果類型');return;}
+  st.snaps.push(JSON.parse(JSON.stringify({st:st,cfg:cfg})));
+  const d=[0,0,0,0]; let desc='';
+
+  if(st.act==='draw'){
+    desc='🤝 流局';
+    if(cfg.drawKeep)st.streak++;
+    else{st.streak=0;rotateDealer();}
+    pushHist(desc,d); resetAct(); renderGame(); return;
+  }
+
+  if(st.winner===null){alert('請先選擇胡牌者');return;}
+
+  if(st.act==='tsumo'){
+    const w=st.winner; const isD=w===st.dealerIdx;
+    const bonus=isD&&st.streak>0?st.streak*cfg.streakBonus+1:0;
+    const total=st.tai+bonus; const isP=total===0;
+    const tv=cfg.taiVal; let gross=0;
+    st.players.forEach((_,i)=>{
+      if(i===w)return;
+      const mult=isD?2:(i===st.dealerIdx?2:1);
+      const pay=cfg.base+total*tv*st.baozi*mult;
+      d[i]-=pay; gross+=pay;
+    });
+    d[w]=gross;  // 贏家收全額，抽水另計公台
+    if(cfg.fee>0){st.feePool+=cfg.fee;st.feeCnt++;st.feeTally[st.winner]++;}
+    const bn=bonus>0?' 連'+st.streak+'×'+cfg.streakBonus+'+1=+'+bonus+'台':'';
+    const bz=st.baozi>1?' 豹子×'+st.baozi:'';
+    desc='🤜 '+st.players[w].name+' 自摸'+(total>0?total+'台':'屁胡')+bn+bz+(cfg.fee>0?' 水'+cfg.fee+'→公台':'');
+    if(isD)st.streak++;else{st.streak=0;rotateDealer();}
+  }
+
+  if(st.act==='ron'){
+    if(st.discard===null){alert('請先選擇放槍者');return;}
+    if(st.winner===st.discard){alert('胡牌者不可等於放槍者');return;}
+    const w=st.winner; const dsc=st.discard;
+    const isD=w===st.dealerIdx; const isDL=dsc===st.dealerIdx;
+    const wb=isD&&st.streak>0?st.streak*cfg.streakBonus+1:0;
+    const db=isDL?st.streak*2+1:0;
+    const total=st.tai+wb+db; const isP=total===0;
+    const amt=cfg.base+total*cfg.taiVal*st.baozi;
+    d[w]=amt; d[dsc]=-amt;
+    const notes=[];if(wb>0)notes.push('莊贏+'+wb);if(db>0)notes.push('莊放+'+db+'台');
+    const bz2=st.baozi>1?' 豹子×'+st.baozi:'';
+    desc='🎯 '+st.players[w].name+' 胡'+(total>0?total+'台':'屁胡')+bz2+' ← '+st.players[dsc].name+(notes.length?' ('+notes.join('，')+')':'');
+    if(isD)st.streak++;else{st.streak=0;rotateDealer();}
+  }
+
+  st.players.forEach((p,i)=>p.score+=d[i]);
+  pushHist(desc,d);
+  const mx=Math.max(...d);
+  resetAct(); renderGame();
+  if(mx>0)floatUp('+'+mx.toLocaleString());
+}
+
+function pushHist(desc,d){
+  st.history.push({round:st.round,desc:desc,names:st.players.map(p=>p.name),deltas:[...d]});
+  st.round++;
+}
+function rotateDealer(){
+  st.dealerIdx=(st.dealerIdx+1)%4;
+  st.players.forEach((p,i)=>{p.wind=WINDS[(i-st.dealerIdx+4)%4];});
+}
+function resetAct(){
+  st.act=null;st.winner=null;st.discard=null;st.baozi=1;
+  ['tsumo','ron','draw'].forEach(x=>document.getElementById('abtn_'+x).classList.remove('aw','ad'));
+  const bSel=document.getElementById('baoziSel');if(bSel)bSel.value='1';
+  document.getElementById('wWrap').style.display='none';
+  document.getElementById('dWrap').style.display='none';
+  document.getElementById('poolStrip').style.display='none';
+  document.getElementById('hint').style.display='none';
+}
+function doUndo(){
+  if(!st.snaps.length){alert('沒有可復原的記錄');return;}
+  const snap=st.snaps.pop();
+  // restore st fields
+  Object.assign(st,JSON.parse(JSON.stringify(snap.st)));
+  Object.assign(cfg,snap.cfg);
+  resetAct(); renderGame();
+}
+function renderHistory(){
+  const list=document.getElementById('hList');
+  if(!st.history.length){
+    list.innerHTML='<div class="hitem"><div class="hhead"><span class="hrno">-</span><span class="hdesc">尚無記錄</span></div></div>';
+    return;
+  }
+  list.innerHTML=[...st.history].reverse().map(h=>{
+    const dets=h.names.map((n,i)=>{
+      const v=h.deltas[i];
+      const cls=v>0?'p':v<0?'n':'z';
+      return`<div class="hdet"><div class="dn">${n}</div><div class="dv ${cls}">${v>0?'+':''}${v.toLocaleString()}</div></div>`;
+    }).join('');
+    return`<div class="hitem"><div class="hhead"><span class="hrno">R${h.round}</span><span class="hdesc">${h.desc}</span></div><div class="hdetails">${dets}</div></div>`;
+  }).join('');
+}
+function adjCG(k,d){cfg[k]=Math.max(0,Math.min(10,cfg[k]+d));document.getElementById('gc_'+k).textContent=cfg[k];}
+function toggleDrawG(){cfg.drawKeep=!cfg.drawKeep;document.getElementById('gdrawBtn').textContent=cfg.drawKeep?'是':'否';}
+function floatUp(txt){
+  const el=document.createElement('div');
+  el.className='floater';el.textContent=txt;
+  const r=document.getElementById('pGrid').getBoundingClientRect();
+  el.style.left=(r.left+r.width/2-40)+'px';
+  el.style.top=(r.top+window.scrollY+r.height/2)+'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend',()=>el.remove());
+}
+
+// ── INIT ──
+buildNames();
+</script>
+</body>
+</html>
